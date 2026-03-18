@@ -166,7 +166,7 @@ export default async function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-3">
-                        {insights.map((insight, i) => (
+                        {insights.map((insight: { type: 'info' | 'warning' | 'success'; title: string; description: string }, i: number) => (
                             <div key={i} className={`flex items-start gap-3 p-3 rounded-lg ${insight.type === 'warning' ? 'bg-amber-50 dark:bg-amber-950/20' :
                                     insight.type === 'success' ? 'bg-green-50 dark:bg-green-950/20' :
                                         'bg-blue-50 dark:bg-blue-950/20'
@@ -241,7 +241,7 @@ export default async function DashboardPage() {
                     <CardContent>
                         {upcomingEvents.length > 0 ? (
                             <div className="space-y-4">
-                                {upcomingEvents.map((event) => (
+                                {upcomingEvents.map((event: { id: string; title: string; date: string; type: string }) => (
                                     <div key={event.id} className="flex items-center justify-between">
                                         <div className="space-y-1">
                                             <p className="text-sm font-medium leading-none">{event.title}</p>
