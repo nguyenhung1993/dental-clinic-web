@@ -84,21 +84,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         where: { email: email.toLowerCase() },
                     });
 
-                    if (!user || !user.password) return null;
+                    if (user && user.password) {
+                        const isValid = await compare(password, user.password);
+                        if (isValid) {
+                            return {
+                                id: user.id,
+                                name: user.name,
+                                email: user.email,
+                                image: user.image,
+                                role: user.role,
+                            };
+                        }
+                    }
+                    
+                    // If DB user not found or password invalid, check mock users
+                    const mockUsers = [
+                        { id: "usr_admin", name: "Admin User", email: "admin@phoenix.com", password: "123", image: "https://avatar.vercel.sh/admin", role: "ADMIN" },
+                        { id: "usr_doctor", name: "Doctor", email: "doctor@phoenix.com", password: "123", image: "https://avatar.vercel.sh/manager", role: "DOCTOR" },
+                        { id: "usr_employee", name: "Nguyễn Văn Minh", email: "employee@phoenix.com", password: "123", image: "https://avatar.vercel.sh/employee", role: "RECEPTIONIST" },
+                    ];
 
-                    const isValid = await compare(password, user.password);
-                    if (!isValid) return null;
-
-                    return {
-                        id: user.id,
-                        name: user.name,
-                        email: user.email,
-                        image: user.image,
-                        role: user.role, // Pass role to token
-                    };
+                    const mockUser = mockUsers.find(u => u.email === email && u.password === password);
+                    if (mockUser) {
+                        return { id: mockUser.id, name: mockUser.name, email: mockUser.email, image: mockUser.image, role: mockUser.role as Role };
+                    }
+                    return null;
                 } catch (dbError) {
                     console.error("Database error during authorize:", dbError);
-                    // DB not available, fall back to mock for development
+                    // Fallback to mock on any DB error
                     const mockUsers = [
                         { id: "usr_admin", name: "Admin User", email: "admin@phoenix.com", password: "123", image: "https://avatar.vercel.sh/admin", role: "ADMIN" },
                         { id: "usr_doctor", name: "Doctor", email: "doctor@phoenix.com", password: "123", image: "https://avatar.vercel.sh/manager", role: "DOCTOR" },
