@@ -49,12 +49,14 @@ export async function createPatient(data: any) {
       }
     });
 
+    /* Temporarily disabled AuditLog for production debugging
     await createAuditLog({
       action: 'CREATE',
       entity: 'Patient',
       entityId: patient.id,
       newData: patient
     });
+    */
 
     revalidatePath('/patients');
     return { success: true, data: patient };
@@ -72,6 +74,7 @@ export async function updatePatient(id: string, data: any) {
       data
     });
 
+    /* Temporarily disabled AuditLog for production debugging
     await createAuditLog({
       action: 'UPDATE',
       entity: 'Patient',
@@ -79,6 +82,7 @@ export async function updatePatient(id: string, data: any) {
       oldData: oldData,
       newData: patient
     });
+    */
 
     revalidatePath('/patients');
     revalidatePath(`/patients/${id}`);
