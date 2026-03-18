@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
         }
 
         const departmentName = candidate.job?.departmentId
-            ? (await prisma.department.findUnique({ where: { id: candidate.job.departmentId } }))?.name
+            ? (await prisma.branch.findUnique({ where: { id: candidate.job.departmentId } }))?.name
             : 'Engineering'; // Fallback
 
         const onboarding = await prisma.onboarding.create({

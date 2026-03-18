@@ -18,7 +18,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
             return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 401 });
         }
 
-        const employee = await prisma.employee.findUnique({
+        const employee = await prisma.staff.findUnique({
             where: { userId: session.user.id },
             select: { id: true },
         });

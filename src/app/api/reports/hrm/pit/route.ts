@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
         const year = parseInt(searchParams.get('year') || String(new Date().getFullYear()));
 
         // Get all active employees with payroll slips for the period
-        const employees = await prisma.employee.findMany({
+        const employees = await prisma.staff.findMany({
             where: { status: { in: ['ACTIVE', 'PROBATION'] } },
             select: {
                 id: true,

@@ -76,7 +76,6 @@ const menuGroups = [
       { name: 'Tự động hóa', href: '/automations', icon: KanbanSquare },
       { name: 'Chuỗi cung ứng', href: '/inventory/supply-chain', icon: Truck },
       { name: 'Quản lý Labo', href: '/labo', icon: FlaskConical },
-      { name: 'Hiệu suất nhân sự', href: '/performance', icon: TrendingUp },
       { name: 'Chi nhánh', href: '/branches', icon: Bed },
     ]
   },

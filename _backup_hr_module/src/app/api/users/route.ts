@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         let positionId = null;
 
         if (department) {
-            const dept = await prisma.department.findFirst({ where: { name: department } });
+            const dept = await prisma.branch.findFirst({ where: { name: department } });
             if (dept) departmentId = dept.id;
         }
 
@@ -179,7 +179,7 @@ export async function PATCH(request: NextRequest) {
             if (department === '') {
                 departmentId = null;
             } else {
-                const dept = await prisma.department.findFirst({ where: { name: department } });
+                const dept = await prisma.branch.findFirst({ where: { name: department } });
                 if (dept) departmentId = dept.id;
             }
         }

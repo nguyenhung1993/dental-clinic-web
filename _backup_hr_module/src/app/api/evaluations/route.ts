@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
         // Get department names
         const deptIds = [...new Set(evaluations.map(e => e.employee.departmentId).filter(Boolean))];
-        const departments = await prisma.department.findMany({
+        const departments = await prisma.branch.findMany({
             where: { id: { in: deptIds as string[] } },
             select: { id: true, name: true },
         });

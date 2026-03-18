@@ -96,7 +96,7 @@ async function handleCronJob(request: NextRequest) {
 
         // Find employees with birthday today
         // Using raw query because Prisma doesn't support EXTRACT on DateTime easily
-        const birthdayEmployees = await prisma.employee.findMany({
+        const birthdayEmployees = await prisma.staff.findMany({
             where: {
                 status: 'ACTIVE',
                 dob: { not: null },

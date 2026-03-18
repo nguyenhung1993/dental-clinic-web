@@ -61,7 +61,7 @@ export default async function EmployeeListPage({ searchParams }: PageProps) {
 
     // Parallel fetch
     const [employees, total, departments, positions] = await Promise.all([
-        prisma.employee.findMany({
+        prisma.staff.findMany({
             where,
             include: {
                 department: true,
@@ -71,8 +71,8 @@ export default async function EmployeeListPage({ searchParams }: PageProps) {
             take: pageSize,
             orderBy: { createdAt: 'desc' },
         }),
-        prisma.employee.count({ where }),
-        prisma.department.findMany({ orderBy: { name: 'asc' } }),
+        prisma.staff.count({ where }),
+        prisma.branch.findMany({ orderBy: { name: 'asc' } }),
         prisma.position.findMany({ orderBy: { name: 'asc' } }),
     ]);
 

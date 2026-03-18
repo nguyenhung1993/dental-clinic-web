@@ -56,18 +56,18 @@ export async function getRecruitmentSourceStats() {
 
 export async function getHeadcountStats() {
     const [byDepartment, byStatus] = await Promise.all([
-        prisma.employee.groupBy({
+        prisma.staff.groupBy({
             by: ['departmentId'],
             _count: { id: true },
             where: { status: 'ACTIVE' }
         }),
-        prisma.employee.groupBy({
+        prisma.staff.groupBy({
             by: ['status'],
             _count: { id: true },
         }),
     ]);
 
-    const departments = await prisma.department.findMany({
+    const departments = await prisma.branch.findMany({
         select: { id: true, name: true }
     });
 
@@ -194,9 +194,9 @@ export async function getEmployeeStats() {
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
     const [totalActive, probation, newHiresThisMonth, resignationsThisMonth] = await Promise.all([
-        prisma.employee.count({ where: { status: { in: ['ACTIVE', 'PROBATION', 'ON_LEAVE'] } } }),
-        prisma.employee.count({ where: { status: 'PROBATION' } }),
-        prisma.employee.count({
+        prisma.staff.count({ where: { status: { in: ['ACTIVE', 'PROBATION', 'ON_LEAVE'] } } }),
+        prisma.staff.count({ where: { status: 'PROBATION' } }),
+        prisma.staff.count({
             where: {
                 hireDate: { gte: startOfMonth },
                 status: { in: ['ACTIVE', 'PROBATION'] },
@@ -214,7 +214,7 @@ export async function getEmployeeStats() {
 }
 
 export async function getDepartmentDistribution() {
-    const departments = await prisma.department.findMany({
+    const departments = await prisma.branch.findMany({
         select: {
             name: true,
             _count: {
@@ -242,7 +242,7 @@ export async function getTurnoverTrend() {
         const label = `T${d.getMonth() + 1}`;
 
         const [hired, resigned] = await Promise.all([
-            prisma.employee.count({
+            prisma.staff.count({
                 where: { hireDate: { gte: start, lte: end } },
             }),
             prisma.resignationRequest.count({
@@ -437,7 +437,7 @@ export async function getAIInsights() {
     }
 
     // 5. Positive: new hires
-    const newHires = await prisma.employee.count({
+    const newHires = await prisma.staff.count({
         where: { hireDate: { gte: startOfMonth }, status: { in: ['ACTIVE', 'PROBATION'] } },
     });
 

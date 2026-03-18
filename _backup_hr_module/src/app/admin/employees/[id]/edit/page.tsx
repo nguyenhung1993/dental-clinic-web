@@ -15,10 +15,10 @@ export default async function EditEmployeePage({ params }: EditEmployeePageProps
     const { id } = await params;
 
     const [employee, departments, positions] = await Promise.all([
-        prisma.employee.findUnique({
+        prisma.staff.findUnique({
             where: { id },
         }),
-        prisma.department.findMany({ orderBy: { name: 'asc' } }),
+        prisma.branch.findMany({ orderBy: { name: 'asc' } }),
         prisma.position.findMany({ orderBy: { name: 'asc' } }),
     ]);
 

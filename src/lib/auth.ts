@@ -40,7 +40,7 @@ export const getUserRole = async (email: string | null | undefined): Promise<Rol
         }
 
         // Verify if they are an actual employee
-        const employee = await prisma.employee.findUnique({
+        const employee = await prisma.staff.findUnique({
             where: { email: email.toLowerCase() },
             select: { id: true },
         });

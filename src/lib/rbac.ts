@@ -210,93 +210,14 @@ export interface NavGroup {
 
 export const navigationConfig: NavGroup[] = [
     {
-        title: 'Tổng quan',
+        title: 'Hệ thống',
         items: [
             { href: '/admin', label: 'Dashboard', icon: 'LayoutDashboard', permission: 'dashboard:view' },
-            { href: '/admin/feed', label: 'Workplace', icon: 'MessageCircle', permission: 'workplace:view' },
-            { href: '/admin/timesheet', label: 'Chấm công', icon: 'Clock', permission: 'timesheet:view' },
-            { href: '/admin/requests', label: 'Quy trình', icon: 'GitPullRequest', permission: 'bpa:request' },
-            { href: '/admin/approvals', label: 'Duyệt yêu cầu', icon: 'FileCheck', permission: 'bpa:approve' },
-        ],
-    },
-    {
-        title: 'Tuyển dụng',
-        items: [
-            { href: '/admin/jobs', label: 'Tin tuyển dụng', icon: 'Briefcase', permission: 'jobs:view' },
-            { href: '/admin/candidates', label: 'Ứng viên', icon: 'Users', permission: 'candidates:view' },
-            { href: '/admin/interviews', label: 'Phỏng vấn', icon: 'Calendar', permission: 'interviews:view' },
-            { href: '/admin/offers', label: 'Offer Letter', icon: 'FileCheck', permission: 'offers:view' },
-            { href: '/admin/onboarding', label: 'Onboarding', icon: 'UserPlus', permission: 'onboarding:view' },
-        ],
-    },
-    {
-        title: 'Nhân sự',
-        items: [
-            { href: '/admin/employees', label: 'Nhân viên', icon: 'User', permission: 'employees:view' },
-            { href: '/admin/contracts', label: 'Hợp đồng', icon: 'FileText', permission: 'contracts:view' },
-            { href: '/admin/departments', label: 'Phòng ban', icon: 'Building', permission: 'departments:view' },
-            { href: '/admin/positions', label: 'Chức vụ', icon: 'Award', permission: 'positions:view' },
-            { href: '/admin/resignations', label: 'Nghỉ việc', icon: 'UserMinus', permission: 'resignation:create' },
-
-        ],
-    },
-    {
-        title: 'C&B',
-        items: [
-            { href: '/admin/leave', label: 'Nghỉ phép', icon: 'CalendarOff', permission: 'leave:view' },
-            { href: '/admin/overtime', label: 'Tăng ca', icon: 'Timer', permission: 'overtime:view' },
-            { href: '/admin/insurance', label: 'Bảo hiểm', icon: 'Shield', permission: 'insurance:view' },
-            { href: '/admin/payroll', label: 'Bảng lương', icon: 'Banknote', permission: 'payroll:view' },
-        ],
-    },
-    {
-        title: 'Đào tạo',
-        items: [
-            { href: '/admin/courses', label: 'Khóa học', icon: 'GraduationCap', permission: 'courses:view' },
-            { href: '/admin/classes', label: 'Lớp học', icon: 'Users', permission: 'classes:view' },
-            { href: '/admin/materials', label: 'Tài liệu', icon: 'FolderOpen', permission: 'materials:view' },
-            { href: '/admin/history', label: 'Lịch sử học', icon: 'History', permission: 'history:view' },
-            { href: '/admin/exams', label: 'Bài kiểm tra', icon: 'FileQuestion', permission: 'exams:view' },
-            { href: '/admin/elearning', label: 'E-Learning', icon: 'PlayCircle', permission: 'elearning:view' },
-        ],
-    },
-    {
-        title: 'Đánh giá',
-        items: [
-            { href: '/admin/goals', label: 'Mục tiêu KPI', icon: 'Target', permission: 'goals:view' },
-            { href: '/admin/templates', label: 'Mẫu đánh giá', icon: 'ClipboardList', permission: 'evaluations:view' },
-            { href: '/admin/evaluations', label: 'Đánh giá 360', icon: 'Users', permission: 'evaluations:view' },
-            { href: '/admin/results', label: 'Kết quả', icon: 'BarChart3', permission: 'results:view' },
-        ],
-    },
-    {
-        title: 'Báo cáo',
-        items: [
-            { href: '/admin/dashboard', label: 'Dashboard', icon: 'LayoutDashboard', permission: 'reports:view' },
-            { href: '/admin/pit', label: 'Thuế TNCN', icon: 'FileText', permission: 'reports:view' },
-            { href: '/admin/insurance-report', label: 'BHXH', icon: 'Shield', permission: 'reports:view' },
-            { href: '/admin/export', label: 'Xuất báo cáo', icon: 'FileText', permission: 'reports:export' },
-        ],
-    },
-    {
-        title: 'Tài sản',
-        items: [
-            { href: '/admin/assets', label: 'Tài sản', icon: 'Monitor', permission: 'assets:view', matchExact: true },
-            { href: '/admin/assets/allocations', label: 'Cấp phát', icon: 'UserPlus', permission: 'assets:assign' },
-            { href: '/admin/assets/maintenance', label: 'Bảo trì', icon: 'Settings', permission: 'assets:edit' },
-        ],
-    },
-    {
-        title: 'Cài đặt',
-        items: [
-            { href: '/admin/settings', label: 'Cài đặt chung', icon: 'Settings', permission: 'settings:view', matchExact: true },
-            { href: '/admin/settings/approvals', label: 'Quy trình duyệt', icon: 'GitPullRequest', permission: 'settings:manage' },
-            { href: '/admin/settings/payroll/tax-insurance', label: 'Thuế & Bảo hiểm', icon: 'BadgePercent', permission: 'payroll:manage' },
-            { href: '/admin/settings/payroll/run', label: 'Tính lương (Run)', icon: 'Calculator', permission: 'payroll:manage' },
-            { href: '/admin/users', label: 'Tài khoản', icon: 'Users', permission: 'users:manage' }, // Added Users Menu
+            { href: '/admin/audit-logs', label: 'Hoạt động', icon: 'Shield', permission: 'dashboard:view' },
         ],
     },
 ];
+
 
 // Get filtered navigation based on role
 export const getNavigationForRole = (role: Role): NavGroup[] => {

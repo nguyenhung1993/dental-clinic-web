@@ -32,7 +32,7 @@ export async function GET(request: NextRequest) {
         }
 
         const [employees, total] = await Promise.all([
-            prisma.employee.findMany({
+            prisma.staff.findMany({
                 where,
                 include: {
                     department: {
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
                 take: limit,
                 orderBy: { createdAt: 'desc' },
             }),
-            prisma.employee.count({ where }),
+            prisma.staff.count({ where }),
         ]);
 
         return NextResponse.json({
@@ -91,21 +91,21 @@ export async function POST(request: NextRequest) {
         }
 
         // Check for duplicate
-        const existingCode = await prisma.employee.findUnique({
+        const existingCode = await prisma.staff.findUnique({
             where: { employeeCode }
         });
         if (existingCode) {
             return NextResponse.json({ error: 'Mã nhân viên đã tồn tại' }, { status: 400 });
         }
 
-        const existingEmail = await prisma.employee.findUnique({
+        const existingEmail = await prisma.staff.findUnique({
             where: { email }
         });
         if (existingEmail) {
             return NextResponse.json({ error: 'Email đã tồn tại' }, { status: 400 });
         }
 
-        const employee = await prisma.employee.create({
+        const employee = await prisma.staff.create({
             data: {
                 employeeCode,
                 fullName,

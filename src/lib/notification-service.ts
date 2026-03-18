@@ -154,7 +154,7 @@ export const notificationService = {
      */
     async notifyManager(employeeId: string, title: string, message: string, type: NotificationType, actionUrl?: string) {
         try {
-            const employee = await prisma.employee.findUnique({
+            const employee = await prisma.staff.findUnique({
                 where: { id: employeeId },
                 select: {
                     fullName: true,

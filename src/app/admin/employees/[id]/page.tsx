@@ -15,7 +15,7 @@ interface EmployeeDetailPageProps {
 export default async function EmployeeDetailPage({ params }: EmployeeDetailPageProps) {
     const { id } = await params;
 
-    const employee = await prisma.employee.findUnique({
+    const employee = await prisma.staff.findUnique({
         where: { id },
         include: {
             department: true,

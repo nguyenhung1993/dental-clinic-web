@@ -13,7 +13,7 @@ const RATES = {
 
 export async function GET(request: NextRequest) {
     try {
-        const employees = await prisma.employee.findMany({
+        const employees = await prisma.staff.findMany({
             where: { status: { in: ['ACTIVE', 'PROBATION'] } },
             select: {
                 id: true,

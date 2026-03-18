@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
         const allocation = await prisma.assetAllocation.create({ data: body });
 
         if (body.status === 'ALLOCATED') {
-            const employee = await prisma.employee.findUnique({ where: { id: body.employeeId } });
+            const employee = await prisma.staff.findUnique({ where: { id: body.employeeId } });
             await prisma.asset.update({
                 where: { id: body.assetId },
                 data: { status: 'IN_USE', holderId: body.employeeId, holderName: employee?.fullName, assignedDate: new Date() }

@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
         const searchParams = request.nextUrl.searchParams;
         const tree = searchParams.get('tree') === 'true';
 
-        const departments = await prisma.department.findMany({
+        const departments = await prisma.branch.findMany({
             include: {
                 _count: { select: { employees: true } },
                 employees: {
@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
         // Enrich with manager name
         const managerIds = departments.map(d => d.managerId).filter(Boolean) as string[];
         const managers = managerIds.length > 0
-            ? await prisma.employee.findMany({
+            ? await prisma.staff.findMany({
                 where: { id: { in: managerIds } },
                 select: { id: true, fullName: true },
             })
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const department = await prisma.department.create({
+        const department = await prisma.branch.create({
             data: { code, name, parentId, managerId },
         });
 

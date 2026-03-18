@@ -15,7 +15,7 @@ export async function GET(
 
         const { id } = await params;
 
-        const employee = await prisma.employee.findUnique({
+        const employee = await prisma.staff.findUnique({
             where: { id },
             include: {
                 department: { select: { id: true, name: true } },
@@ -49,7 +49,7 @@ export async function PATCH(
         const body = await request.json();
 
         // Check if employee exists
-        const existing = await prisma.employee.findUnique({ where: { id } });
+        const existing = await prisma.staff.findUnique({ where: { id } });
         if (!existing) {
             return NextResponse.json({ error: 'Không tìm thấy nhân viên' }, { status: 404 });
         }
@@ -63,7 +63,7 @@ export async function PATCH(
 
         // Check for duplicate email (excluding current employee)
         if (email && email !== existing.email) {
-            const existingEmail = await prisma.employee.findUnique({
+            const existingEmail = await prisma.staff.findUnique({
                 where: { email },
             });
             if (existingEmail) {
@@ -73,7 +73,7 @@ export async function PATCH(
 
         // Check for duplicate employee code (excluding current employee)
         if (employeeCode && employeeCode !== existing.employeeCode) {
-            const existingCode = await prisma.employee.findUnique({
+            const existingCode = await prisma.staff.findUnique({
                 where: { employeeCode },
             });
             if (existingCode) {
@@ -81,7 +81,7 @@ export async function PATCH(
             }
         }
 
-        const employee = await prisma.employee.update({
+        const employee = await prisma.staff.update({
             where: { id },
             data: {
                 ...(fullName && { fullName }),
@@ -129,12 +129,12 @@ export async function DELETE(
 
         const { id } = await params;
 
-        const existing = await prisma.employee.findUnique({ where: { id } });
+        const existing = await prisma.staff.findUnique({ where: { id } });
         if (!existing) {
             return NextResponse.json({ error: 'Không tìm thấy nhân viên' }, { status: 404 });
         }
 
-        await prisma.employee.delete({ where: { id } });
+        await prisma.staff.delete({ where: { id } });
 
         return NextResponse.json({ message: 'Đã xóa nhân viên thành công' });
     } catch (error) {
