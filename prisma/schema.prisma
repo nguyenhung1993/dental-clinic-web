@@ -1,0 +1,710 @@
+// Dental Clinic Management System - Database Schema
+// Phase 1 MVP: Staff, Patient, Appointment, Billing
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+// ==================== AUTH (NextAuth Prisma Adapter) ====================
+
+model User {
+  id            String     @id @default(cuid())
+  name          String?
+  email         String     @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          StaffRole  @default(RECEPTIONIST)
+  status        UserStatus @default(ACTIVE)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  staff         Staff?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ==================== ENUMS ====================
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum StaffRole {
+  SUPER_ADMIN
+  ADMIN
+  DOCTOR
+  ASSISTANT
+  RECEPTIONIST
+  ACCOUNTANT
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  ARRIVED
+  IN_PROGRESS
+  WAITING_PAYMENT
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  UNPAID
+  PARTIAL
+  PAID
+  REFUNDED
+}
+
+enum PaymentMethod {
+  CASH
+  BANK_TRANSFER
+  CARD
+  VIETQR
+}
+
+enum TreatmentStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ToothSurface {
+  OCCLUSAL  // Mặt nhai
+  BUCCAL    // Mặt ngoài
+  LINGUAL   // Mặt trong
+  MESIAL    // Mặt gần
+  DISTAL    // Mặt xa
+}
+
+enum ToothCondition {
+  HEALTHY
+  CAVITY          // Sâu răng
+  EXTRACTED       // Đã nhổ
+  CROWNED         // Bọc sứ
+  IMPLANT         // Implant
+  ROOT_CANAL      // Chữa tủy
+  FILLING         // Trám răng
+  MISSING         // Mất răng (chưa phục hình)
+  BROKEN          // Gãy vỡ
+  ORTHODONTIC     // Đang chỉnh nha
+}
+
+enum InventoryTransactionType {
+  IN   // Nhập kho
+  OUT  // Xuất kho
+  ADJUST // Điều chỉnh kiểm kê
+}
+
+enum NotificationType {
+  APPOINTMENT_REMINDER
+  PAYMENT_DUE
+  BIRTHDAY
+  SYSTEM_ALERT
+  TREATMENT_UPDATE
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+// ==================== BRANCH (CHI NHÁNH) ====================
+
+model Branch {
+  id        String   @id @default(cuid())
+  name      String   
+  address   String?
+  phone     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  staff         Staff[]
+  patients      Patient[]
+  appointments  Appointment[]
+  invoices      Invoice[]
+  inventory     InventoryItem[]
+  expenses      Expense[]
+  laboOrders    LaboOrder[]
+}
+
+// ==================== STAFF (NHÂN SỰ) ====================
+
+model Staff {
+  id          String    @id @default(cuid())
+  staffCode   String    @unique
+  fullName    String
+  avatar      String?
+  dob         DateTime?
+  gender      Gender?
+  email       String    @unique
+  phone       String?
+  address     String?
+  role        StaffRole @default(RECEPTIONIST)
+  specialization String? // Chuyên môn bác sĩ (Implant, Chỉnh nha, ...)
+  licenseNumber  String? // Số CCHN nha khoa
+  isActive    Boolean   @default(true)
+  userId      String?   @unique
+  branchId    String?   // Thuộc chi nhánh nào
+  hireDate    DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user          User?          @relation(fields: [userId], references: [id])
+  branch        Branch?        @relation(fields: [branchId], references: [id])
+  appointments  Appointment[]  @relation("DoctorAppointments")
+  treatmentNotes TreatmentNote[]
+  commissions   Commission[]
+  expenses      Expense[]
+  laboOrders    LaboOrder[]
+}
+
+// ==================== PATIENT (BỆNH NHÂN) ====================
+
+model Patient {
+  id            String    @id @default(cuid())
+  patientCode   String    @unique  // Mã bệnh nhân (tự sinh: BN-0001)
+  fullName      String
+  avatar        String?
+  dob           DateTime?
+  gender        Gender?
+  phone         String
+  email         String?
+  address       String?
+  occupation    String?
+  emergencyContact String?
+  emergencyPhone   String?
+  branchId      String?
+
+  // Tiền sử bệnh lý toàn thân
+  medicalHistory   String?   @db.Text
+  allergies        String?   // Dị ứng thuốc/vật liệu
+  bloodPressure    String?
+  isDiabetic       Boolean   @default(false)
+  isBloodDisorder  Boolean   @default(false)
+  otherConditions  String?
+
+  // Nguồn đến
+  source           PatientSource @default(OTHER)
+  referrerName     String?
+
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+  appointments    Appointment[]
+  dentalChart     DentalChart?
+  treatmentPlans  TreatmentPlan[]
+  invoices        Invoice[]
+  xrays           XrayFile[]
+  laboOrders      LaboOrder[]
+  loyalty         PatientLoyalty?
+}
+
+enum PatientSource {
+  FACEBOOK
+  ZALO
+  REFERRAL     // Giới thiệu
+  WALK_IN      // Đi ngang
+  RETURNING    // Tái khám
+  WEBSITE
+  OTHER
+}
+
+// ==================== DENTAL CHART (SƠ ĐỒ RĂNG) ====================
+
+model DentalChart {
+  id          String   @id @default(cuid())
+  patientId   String   @unique
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  teeth       ToothRecord[]
+}
+
+model ToothRecord {
+  id              String         @id @default(cuid())
+  dentalChartId   String
+  toothNumber     Int            // 11-18, 21-28, 31-38, 41-48 (FDI notation)
+  condition       ToothCondition @default(HEALTHY)
+  surfaces        Json?          // { "OCCLUSAL": "CAVITY", "BUCCAL": "HEALTHY", ... }
+  notes           String?
+  updatedAt       DateTime       @updatedAt
+
+  dentalChart     DentalChart    @relation(fields: [dentalChartId], references: [id], onDelete: Cascade)
+
+  @@unique([dentalChartId, toothNumber])
+}
+
+model XrayFile {
+  id          String   @id @default(cuid())
+  patientId   String
+  url         String   @db.Text
+  publicId    String?  // Cloudinary public_id
+  fileName    String?
+  fileSize    String?
+  type        String?  // panorama, cephalo, periapical
+  takenAt     DateTime @default(now())
+  notes       String?
+  metadata    Json?    // Width, height, format...
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+// ==================== APPOINTMENT (LỊCH HẸN) ====================
+
+model DentalChair {
+  id        String  @id @default(cuid())
+  name      String  // Ghế 1, Ghế 2, ...
+  roomName  String? // Phòng A, Phòng B
+  isActive  Boolean @default(true)
+
+  appointments  Appointment[]
+}
+
+model Appointment {
+  id            String            @id @default(cuid())
+  appointmentNo String            @unique // AP-20260101-001
+  patientId     String
+  doctorId      String
+  chairId       String?
+  branchId      String?
+
+  scheduledAt   DateTime          // Ngày giờ hẹn
+  duration      Int               @default(60) // phút
+  endAt         DateTime?         // Tính tự động
+
+  status        AppointmentStatus @default(SCHEDULED)
+  serviceNote   String?           // Dịch vụ dự kiến (ghi tay cho nhanh)
+  chiefComplaint String?          // Lý do đến khám
+  checkedInAt   DateTime?
+  completedAt   DateTime?
+
+  createdBy     String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  patient       Patient      @relation(fields: [patientId], references: [id])
+  doctor        Staff        @relation("DoctorAppointments", fields: [doctorId], references: [id])
+  chair         DentalChair? @relation(fields: [chairId], references: [id])
+  branch        Branch?      @relation(fields: [branchId], references: [id])
+  treatmentNotes TreatmentNote[]
+}
+
+// ==================== TREATMENT PLAN (KẾ HOẠCH ĐIỀU TRỊ) ====================
+
+model Service {
+  id          String  @id @default(cuid())
+  code        String  @unique
+  name        String
+  category    String  // Nhổ răng, Chỉnh nha, Implant, Làm đẹp, ...
+  price       Float
+  unit        String  @default("răng")
+  description String? @db.Text
+  isActive    Boolean @default(true)
+
+  treatmentItems TreatmentItem[]
+  invoiceItems   InvoiceItem[]
+}
+
+model TreatmentPlan {
+  id          String   @id @default(cuid())
+  planNo      String   @unique // TP-20260101-001
+  patientId   String
+  title       String
+  description String?  @db.Text
+  totalAmount Float    @default(0)
+  status      TreatmentStatus @default(PLANNED)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  patient     Patient          @relation(fields: [patientId], references: [id])
+  items       TreatmentItem[]
+  invoices    Invoice[]
+}
+
+model TreatmentItem {
+  id              String          @id @default(cuid())
+  treatmentPlanId String
+  serviceId       String
+  toothNumber     Int?
+  quantity        Int             @default(1)
+  unitPrice       Float
+  discount        Float           @default(0)
+  totalPrice      Float
+  status          TreatmentStatus @default(PLANNED)
+  notes           String?
+  completedAt     DateTime?
+
+  treatmentPlan   TreatmentPlan   @relation(fields: [treatmentPlanId], references: [id], onDelete: Cascade)
+  service         Service         @relation(fields: [serviceId], references: [id])
+}
+
+model TreatmentNote {
+  id            String   @id @default(cuid())
+  appointmentId String
+  doctorId      String
+  content       String   @db.Text
+  prescription  String?  @db.Text // Đơn thuốc
+  nextVisitNote String?
+  createdAt     DateTime @default(now())
+
+  appointment   Appointment  @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  doctor        Staff        @relation(fields: [doctorId], references: [id])
+}
+
+// ==================== BILLING (THANH TOÁN) ====================
+
+model Invoice {
+  id              String        @id @default(cuid())
+  invoiceNo       String        @unique // INV-20260101-001
+  patientId       String
+  treatmentPlanId String?
+  branchId        String?
+
+  subtotal        Float
+  discount        Float         @default(0)
+  tax             Float         @default(0)
+  totalAmount     Float
+
+  paidAmount      Float         @default(0)
+  remainingAmount Float         @default(0)
+  paymentStatus   PaymentStatus @default(UNPAID)
+
+  notes           String?       @db.Text
+  issuedAt        DateTime      @default(now())
+  dueDate         DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  patient         Patient        @relation(fields: [patientId], references: [id])
+  treatmentPlan   TreatmentPlan? @relation(fields: [treatmentPlanId], references: [id])
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+  items           InvoiceItem[]
+  payments        Payment[]
+}
+
+model InvoiceItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  serviceId   String?
+  description String
+  toothNumber Int?
+  quantity    Int     @default(1)
+  unitPrice   Float
+  discount    Float   @default(0)
+  totalPrice  Float
+
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  service     Service? @relation(fields: [serviceId], references: [id])
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  invoiceId     String
+  amount        Float
+  method        PaymentMethod @default(CASH)
+  referenceCode String?       // Mã giao dịch, mã chuyển khoản
+  paidAt        DateTime      @default(now())
+  notes         String?
+  receivedBy    String?       // StaffId thu tiền
+  createdAt     DateTime      @default(now())
+
+  invoice       Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+// ==================== INSTALLMENT (TRẢ GÓP) ====================
+
+model InstallmentPlan {
+  id              String   @id @default(cuid())
+  invoiceId       String
+  totalAmount     Float
+  numberOfMonths  Int
+  startDate       DateTime
+  notes           String?
+  createdAt       DateTime @default(now())
+
+  schedule        InstallmentSchedule[]
+
+  @@unique([invoiceId])
+}
+
+model InstallmentSchedule {
+  id                String   @id @default(cuid())
+  installmentPlanId String
+  dueDate           DateTime
+  amount            Float
+  isPaid            Boolean  @default(false)
+  paidAt            DateTime?
+  paidAmount        Float?
+  notes             String?
+
+  plan              InstallmentPlan @relation(fields: [installmentPlanId], references: [id], onDelete: Cascade)
+}
+
+// ==================== INVENTORY (VẬT TƯ) ====================
+
+model InventoryItem {
+  id            String   @id @default(cuid())
+  code          String   @unique
+  name          String
+  category      String   // Vật tư tiêu hao, Vật liệu nha khoa, Thuốc, ...
+  unit          String   // cái, hộp, ml, ...
+  quantity      Float    @default(0)
+  minQuantity   Float    @default(5) // Ngưỡng cảnh báo tồn kho
+  unitCost      Float    @default(0)
+  supplier      String?
+  branchId      String?
+  expiresAt     DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  branch        Branch?       @relation(fields: [branchId], references: [id])
+  transactions  InventoryTransaction[]
+}
+
+model InventoryTransaction {
+  id          String                   @id @default(cuid())
+  itemId      String
+  type        InventoryTransactionType
+  quantity    Float
+  beforeQty   Float
+  afterQty    Float
+  reason      String?
+  performedBy String?
+  createdAt   DateTime                 @default(now())
+
+  item        InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+// ==================== COMMISSION (HOA HỒNG BÁC SĨ) ====================
+
+model Commission {
+  id          String   @id @default(cuid())
+  staffId     String
+  invoiceId   String?
+  amount      Float
+  percentage  Float?
+  description String?
+  paidAt      DateTime?
+  isPaid      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  staff       Staff @relation(fields: [staffId], references: [id])
+}
+
+// ==================== LABO (QUẢN LÝ XƯỞNG) ====================
+
+model LaboSupplier {
+  id            String   @id @default(cuid())
+  name          String
+  contactPerson String?
+  phone         String?
+  email         String?
+  address       String?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  orders        LaboOrder[]
+}
+
+model LaboOrder {
+  id              String      @id @default(cuid())
+  orderNo         String      @unique // LB-2026001
+  patientId       String
+  doctorId        String
+  supplierId      String
+  branchId        String?
+  
+  serviceName     String      // Tên phục hình (Vd: Răng sứ Cercon)
+  toothNumber     String?     // Vd: 11, 12, 21
+  material        String?     // Vật liệu
+  color           String?     // Bảng màu răng
+  
+  price           Float       @default(0)
+  status          LaboStatus  @default(SENT)
+  
+  sentDate        DateTime    @default(now())
+  expectedDate    DateTime?
+  receivedDate    DateTime?
+  
+  notes           String?     @db.Text
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  patient         Patient      @relation(fields: [patientId], references: [id])
+  doctor          Staff        @relation(fields: [doctorId], references: [id])
+  supplier        LaboSupplier @relation(fields: [supplierId], references: [id])
+  branch          Branch?      @relation(fields: [branchId], references: [id])
+}
+
+enum LaboStatus {
+  SENT        // Đã gửi
+  RECEIVED    // Đã nhận hàng từ Labo
+  INSTALLED   // Đã lắp cho bệnh nhân
+  CANCELLED   // Đã hủy
+}
+
+// ==================== EXPENSE (CHI PHÍ VẬN HÀNH) ====================
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    ExpenseCategory
+  amount      Float
+  description String?
+  date        DateTime @default(now())
+  branchId    String?
+  staffId     String?  // Người thực hiện chi
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+  staff       Staff?   @relation(fields: [staffId], references: [id])
+}
+
+enum ExpenseCategory {
+  SALARY      // Lương nhân viên
+  RENT        // Tiền thuê mặt bằng
+  UTILITIES   // Điện, nước, internet
+  MATERIALS   // Mua vật tư
+  MARKETING   // Quảng cáo
+  LABO        // Trả tiền Labo
+  OTHER       // Khác
+}
+
+// ==================== NOTIFICATION ====================
+
+model Notification {
+  id        String               @id @default(cuid())
+  userId    String
+  type      NotificationType
+  priority  NotificationPriority @default(MEDIUM)
+  title     String
+  message   String               @db.Text
+  isRead    Boolean              @default(false)
+  link      String?
+  createdAt DateTime             @default(now())
+
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ==================== AUDIT LOG ====================
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String
+  entity      String
+  entityId    String
+  oldData     Json?
+  newData     Json?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  user        User @relation(fields: [userId], references: [id])
+}
+
+// ==================== MARKETING & CRM (MỤC 5) ====================
+
+model Campaign {
+  id            String   @id @default(cuid())
+  name          String
+  description   String?  @db.Text
+  status        CampaignStatus @default(SCHEDULED)
+  budget        Float    @default(0)
+  expectedReach Int      @default(0)
+  actualReach   Int      @default(0)
+  leads         Int      @default(0)
+  conversionRate Float   @default(0)
+  startDate     DateTime
+  endDate       DateTime?
+  channels      String[] // FB, GG, Zalo, SMS, Email, ...
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+enum CampaignStatus {
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+}
+
+model PatientLoyalty {
+  id            String   @id @default(cuid())
+  patientId     String   @unique
+  points        Int      @default(0)
+  tier          LoyaltyTier @default(SILVER)
+  lastUpdated   DateTime @default(now())
+
+  patient       Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+}
+
+enum LoyaltyTier {
+  SILVER
+  GOLD
+  DIAMOND
+}
