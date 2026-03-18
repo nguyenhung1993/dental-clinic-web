@@ -6,6 +6,7 @@ import prisma from '@/lib/prisma';
 
 export async function getPatients(query?: string) {
   try {
+    console.log("[getPatients] Query:", query);
     const patients = await prisma.patient.findMany({
       where: query ? {
         OR: [
@@ -23,13 +24,15 @@ export async function getPatients(query?: string) {
       orderBy: { createdAt: 'desc' }
     });
 
+    console.log("[getPatients] Found:", patients.length, "patients");
+
     return patients.map((p: any) => ({
       ...p,
       lastVisit: p.appointments[0]?.scheduledAt || 'Chưa có',
       status: p.isActive ? 'ACTIVE' : 'INACTIVE'
     }));
   } catch (error) {
-    console.error('Failed to fetch patients:', error);
+    console.error('[getPatients] Error:', error);
     return [];
   }
 }
