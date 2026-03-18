@@ -48,7 +48,7 @@ export default function UserManagementPage() {
     const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState<Partial<User> & { password?: string }>({
-        name: '', email: '', role: 'EMPLOYEE', department: '', position: '', status: 'active', password: '',
+        name: '', email: '', role: 'RECEPTIONIST', department: '', position: '', status: 'active', password: '',
     });
 
     const fetchData = async () => {
@@ -98,7 +98,7 @@ export default function UserManagementPage() {
 
     const handleOpenCreate = () => {
         setEditingUser(null);
-        setFormData({ name: '', email: '', role: 'EMPLOYEE', department: '', position: '', status: 'active', password: '' });
+        setFormData({ name: '', email: '', role: 'RECEPTIONIST', department: '', position: '', status: 'active', password: '' });
         setIsDialogOpen(true);
     };
 
@@ -236,7 +236,7 @@ export default function UserManagementPage() {
                                         </Badge>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        {user.role !== 'SUPER_ADMIN' ? (
+                                        {user.role !== 'ADMIN' ? (
                                             <DropdownMenu>
                                                 <DropdownMenuTrigger asChild>
                                                     <Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button>
@@ -339,7 +339,7 @@ export default function UserManagementPage() {
                                 <SelectTrigger className="col-span-3"><SelectValue placeholder="Chọn vai trò" /></SelectTrigger>
                                 <SelectContent>
                                     {Object.entries(roleLabels).map(([key, info]) => {
-                                        if (key === 'SUPER_ADMIN') return null;
+                                        if (key === 'ADMIN') return null;
                                         return (<SelectItem key={key} value={key}><span className={info.color + " px-2 py-0.5 rounded text-xs"}>{info.label}</span></SelectItem>);
                                     })}
                                 </SelectContent>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { auth } from '@/lib/auth';
 
-// GET /api/employees/[id] - Get single employee
+// GET /api/employees/[id] - Get single staff member
 export async function GET(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -15,26 +15,25 @@ export async function GET(
 
         const { id } = await params;
 
-        const employee = await prisma.staff.findUnique({
+        const staff = await prisma.staff.findUnique({
             where: { id },
             include: {
-                department: { select: { id: true, name: true } },
-                position: { select: { id: true, name: true, level: true } },
+                branch: { select: { id: true, name: true } },
             },
         });
 
-        if (!employee) {
+        if (!staff) {
             return NextResponse.json({ error: 'Không tìm thấy nhân viên' }, { status: 404 });
         }
 
-        return NextResponse.json(employee);
+        return NextResponse.json(staff);
     } catch (error) {
         console.error('GET /api/employees/[id] error:', error);
         return NextResponse.json({ error: 'Lỗi hệ thống' }, { status: 500 });
     }
 }
 
-// PATCH /api/employees/[id] - Update employee
+// PATCH /api/employees/[id] - Update staff member
 export async function PATCH(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -48,7 +47,7 @@ export async function PATCH(
         const { id } = await params;
         const body = await request.json();
 
-        // Check if employee exists
+        // Check if staff exists
         const existing = await prisma.staff.findUnique({ where: { id } });
         if (!existing) {
             return NextResponse.json({ error: 'Không tìm thấy nhân viên' }, { status: 404 });
@@ -56,12 +55,11 @@ export async function PATCH(
 
         const {
             fullName, email, phone, dob, gender,
-            departmentId, positionId, managerId, hireDate,
-            address, identityCard, taxCode, bankAccount, bankName,
-            contractTypeId, shiftTypeId, status, employeeCode,
+            branchId, hireDate, address, role,
+            specialization, licenseNumber, isActive, staffCode,
         } = body;
 
-        // Check for duplicate email (excluding current employee)
+        // Check for duplicate email (excluding current staff)
         if (email && email !== existing.email) {
             const existingEmail = await prisma.staff.findUnique({
                 where: { email },
@@ -71,17 +69,17 @@ export async function PATCH(
             }
         }
 
-        // Check for duplicate employee code (excluding current employee)
-        if (employeeCode && employeeCode !== existing.employeeCode) {
+        // Check for duplicate staff code (excluding current staff)
+        if (staffCode && staffCode !== existing.staffCode) {
             const existingCode = await prisma.staff.findUnique({
-                where: { employeeCode },
+                where: { staffCode: staffCode },
             });
             if (existingCode) {
                 return NextResponse.json({ error: 'Mã nhân viên đã tồn tại' }, { status: 400 });
             }
         }
 
-        const employee = await prisma.staff.update({
+        const staff = await prisma.staff.update({
             where: { id },
             data: {
                 ...(fullName && { fullName }),
@@ -89,34 +87,28 @@ export async function PATCH(
                 ...(phone !== undefined && { phone }),
                 ...(dob && { dob: new Date(dob) }),
                 ...(gender && { gender }),
-                ...(departmentId && { departmentId }),
-                ...(positionId && { positionId }),
-                ...(managerId !== undefined && { managerId: managerId || null }),
+                ...(branchId && { branchId }),
                 ...(hireDate && { hireDate: new Date(hireDate) }),
                 ...(address !== undefined && { address }),
-                ...(identityCard !== undefined && { identityCard }),
-                ...(taxCode !== undefined && { taxCode }),
-                ...(bankAccount !== undefined && { bankAccount }),
-                ...(bankName !== undefined && { bankName }),
-                ...(contractTypeId !== undefined && { contractTypeId: contractTypeId || null }),
-                ...(shiftTypeId !== undefined && { shiftTypeId: shiftTypeId || null }),
-                ...(status && { status }),
-                ...(employeeCode && { employeeCode }),
+                ...(role && { role }),
+                ...(specialization !== undefined && { specialization }),
+                ...(licenseNumber !== undefined && { licenseNumber }),
+                ...(isActive !== undefined && { isActive }),
+                ...(staffCode && { staffCode }),
             },
             include: {
-                department: { select: { id: true, name: true } },
-                position: { select: { id: true, name: true } },
+                branch: { select: { id: true, name: true } },
             },
         });
 
-        return NextResponse.json(employee);
+        return NextResponse.json(staff);
     } catch (error) {
         console.error('PATCH /api/employees/[id] error:', error);
         return NextResponse.json({ error: 'Lỗi hệ thống' }, { status: 500 });
     }
 }
 
-// DELETE /api/employees/[id] - Delete employee
+// DELETE /api/employees/[id] - Delete staff member
 export async function DELETE(
     request: NextRequest,
     { params }: { params: Promise<{ id: string }> }

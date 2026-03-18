@@ -25,7 +25,7 @@ export const getUserRole = async (email: string | null | undefined): Promise<Rol
 
     // First check if user is an admin
     if (isAdmin(email)) {
-        return "SUPER_ADMIN";
+        return "ADMIN";
     }
 
     try {
@@ -35,7 +35,7 @@ export const getUserRole = async (email: string | null | undefined): Promise<Rol
             select: { role: true },
         });
 
-        if (user?.role && user.role !== "EMPLOYEE") {
+        if (user?.role && user.role !== "RECEPTIONIST") {
             return user.role as Role;
         }
 
@@ -46,7 +46,7 @@ export const getUserRole = async (email: string | null | undefined): Promise<Rol
         });
 
         if (employee) {
-            return "EMPLOYEE";
+            return "RECEPTIONIST";
         }
     } catch {
         // DB not available, fall back
@@ -97,9 +97,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                 } catch {
                     // DB not available, fall back to mock for development
                     const mockUsers = [
-                        { id: "usr_admin", name: "Admin User", email: "admin@phoenix.com", password: "123", image: "https://avatar.vercel.sh/admin", role: "SUPER_ADMIN" },
-                        { id: "usr_manager", name: "HR Manager", email: "manager@phoenix.com", password: "123", image: "https://avatar.vercel.sh/manager", role: "HR_MANAGER" },
-                        { id: "usr_employee", name: "Nguyễn Văn Minh", email: "employee@phoenix.com", password: "123", image: "https://avatar.vercel.sh/employee", role: "EMPLOYEE" },
+                        { id: "usr_admin", name: "Admin User", email: "admin@phoenix.com", password: "123", image: "https://avatar.vercel.sh/admin", role: "ADMIN" },
+                        { id: "usr_doctor", name: "Doctor", email: "doctor@phoenix.com", password: "123", image: "https://avatar.vercel.sh/manager", role: "DOCTOR" },
+                        { id: "usr_employee", name: "Nguyễn Văn Minh", email: "employee@phoenix.com", password: "123", image: "https://avatar.vercel.sh/employee", role: "RECEPTIONIST" },
                     ];
 
                     const mockUser = mockUsers.find(u => u.email === email && u.password === password);
@@ -127,7 +127,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (user) {
                 token.id = user.id;
 
-                // Recalculate true role instead of trusting the DB default "EMPLOYEE" 
+                // Recalculate true role instead of trusting the DB default "RECEPTIONIST" 
                 // when user is first created by OAuth
                 if (user.email) {
                     const realRole = await getUserRole(user.email);
@@ -135,12 +135,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
                     const userRole = 'role' in user ? user.role : undefined;
 
-                    // Sync the real role back to the DB to override the default "EMPLOYEE"
-                    if (user.id && userRole !== realRole) {
+                    // Sync the real role back to the DB to override the default "RECEPTIONIST"
+                    if (user.id && userRole !== realRole && realRole !== "VIEWER") {
                         try {
                             await prisma.user.update({
                                 where: { id: user.id },
-                                data: { role: realRole }
+                                data: { role: realRole as any }
                             });
                         } catch (error) {
                             console.error("Failed to sync role to db:", error);

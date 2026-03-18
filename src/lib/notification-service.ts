@@ -62,9 +62,7 @@ export const notificationService = {
                     message,
                     type,
                     priority,
-                    actionUrl,
-                    senderName,
-                    senderAvatar,
+                    link: actionUrl,
                     isRead: false,
                 },
             });
@@ -114,8 +112,7 @@ export const notificationService = {
                     message,
                     type,
                     priority,
-                    actionUrl,
-                    senderName,
+                    link: actionUrl,
                 })),
             });
         } catch (error) {
@@ -123,63 +120,7 @@ export const notificationService = {
         }
     },
 
-    /**
-     * Notify all HR staff (SUPER_ADMIN, HR_MANAGER, HR_STAFF, RECRUITER)
-     */
-    async notifyHR(title: string, message: string, type: NotificationType, actionUrl?: string) {
-        try {
-            const hrUsers = await prisma.user.findMany({
-                where: {
-                    role: { in: ['SUPER_ADMIN', 'HR_MANAGER', 'HR_STAFF', 'RECRUITER'] },
-                    status: 'ACTIVE',
-                },
-                select: { id: true },
-            });
 
-            await this.notifyMany({
-                userIds: hrUsers.map(u => u.id),
-                title,
-                message,
-                type,
-                actionUrl,
-                senderName: 'Hệ thống',
-            });
-        } catch (error) {
-            console.error('Failed to notify HR:', error);
-        }
-    },
-
-    /**
-     * Notify manager of employee (look up employee, find their manager's userId)
-     */
-    async notifyManager(employeeId: string, title: string, message: string, type: NotificationType, actionUrl?: string) {
-        try {
-            const employee = await prisma.staff.findUnique({
-                where: { id: employeeId },
-                select: {
-                    fullName: true,
-                    manager: {
-                        select: {
-                            user: { select: { id: true } },
-                        },
-                    },
-                },
-            });
-
-            if (employee?.manager?.user?.id) {
-                await this.notify({
-                    userId: employee.manager.user.id,
-                    title,
-                    message,
-                    type,
-                    actionUrl,
-                    senderName: employee.fullName,
-                });
-            }
-        } catch (error) {
-            console.error('Failed to notify manager:', error);
-        }
-    },
 
     /**
      * Build simple HTML email body

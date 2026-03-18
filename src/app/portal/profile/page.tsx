@@ -13,22 +13,22 @@ import { toast } from 'sonner';
 
 export default function ProfilePage() {
     const { data: session } = useSession();
-    const [employee, setEmployee] = useState<any>(null);
-    const [department, setDepartment] = useState<any>(null);
-    const [position, setPosition] = useState<any>(null);
-    const [contract, setContract] = useState<any>(null);
+    const [staff, setStaff] = useState<any>(null);
+    const [branch, setBranch] = useState<any>(null);
 
     useEffect(() => {
-        // Fetch employee profile from API
+        // Fetch staff profile from API
         fetch('/api/employees?limit=50').then(r => r.json()).then((res: any) => {
-            const employees = res.data || [];
-            const emp = employees.find((e: any) => e.email === session?.user?.email) || employees[0];
-            if (emp) {
-                setEmployee(emp);
-                // Fetch related data
-                if (emp.departmentId) fetch(`/api/departments`).then(r => r.json()).then((res: any) => setDepartment((res.data || res || []).find((d: any) => d.id === emp.departmentId)));
-                if (emp.positionId) fetch(`/api/positions`).then(r => r.json()).then((res: any) => setPosition((res.data || res || []).find((p: any) => p.id === emp.positionId)));
-                fetch(`/api/contracts`).then(r => r.json()).then((res: any) => setContract((res.data || res || []).find((c: any) => c.employeeId === emp.id)));
+            const staffList = res.data || [];
+            const member = staffList.find((e: any) => e.email === session?.user?.email) || staffList[0];
+            if (member) {
+                setStaff(member);
+                // Fetch branch info if needed or use from include
+                if (member.branch) {
+                    setBranch(member.branch);
+                } else if (member.branchId) {
+                    fetch(`/api/branches/${member.branchId}`).then(r => r.json()).then((res: any) => setBranch(res)).catch(() => {});
+                }
             }
         }).catch(console.error);
     }, [session]);
@@ -37,23 +37,23 @@ export default function ProfilePage() {
     const [formData, setFormData] = useState({
         phone: '',
         address: '',
-        emergencyContact: 'Người thân (0987...)',
+        specialization: '',
     });
 
     useEffect(() => {
-        if (employee) {
+        if (staff) {
             setFormData({
-                phone: employee.phone || '',
-                address: employee.address || '',
-                emergencyContact: 'Người thân (0987...)',
+                phone: staff.phone || '',
+                address: staff.address || '',
+                specialization: staff.specialization || '',
             });
         }
-    }, [employee]);
+    }, [staff]);
 
-    if (!employee) return <div className="p-6 text-center text-muted-foreground">Đang tải hồ sơ...</div>;
+    if (!staff) return <div className="p-6 text-center text-muted-foreground">Đang tải hồ sơ...</div>;
 
     const handleSave = () => {
-        // Here you would call API to update profile
+        // Mock update
         toast.success("Đã cập nhật hồ sơ thành công!");
         setIsEditing(false);
     };
@@ -72,33 +72,33 @@ export default function ProfilePage() {
                         <div className="flex justify-center mb-4">
                             <Avatar className="h-24 w-24">
                                 <AvatarImage src={session?.user?.image || undefined} />
-                                <AvatarFallback>{employee.fullName.charAt(0)}</AvatarFallback>
+                                <AvatarFallback>{staff.fullName.charAt(0)}</AvatarFallback>
                             </Avatar>
                         </div>
-                        <CardTitle>{employee.fullName}</CardTitle>
-                        <CardDescription>{employee.email}</CardDescription>
-                        <div className="mt-2">
-                            <Badge variant="secondary" className="mt-2">{position?.name || employee.positionName}</Badge>
+                        <CardTitle>{staff.fullName}</CardTitle>
+                        <CardDescription>{staff.email}</CardDescription>
+                        <div className="mt-2 text-sm font-medium text-primary">
+                            {staff.role}
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-2 text-sm">
                             <div className="flex justify-between py-2 border-b">
-                                <span className="text-muted-foreground">Mã nhân viên:</span>
-                                <span className="font-medium">{employee.employeeCode}</span>
+                                <span className="text-muted-foreground">Mã nhân sự:</span>
+                                <span className="font-medium">{staff.staffCode}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b">
-                                <span className="text-muted-foreground">Phòng ban:</span>
-                                <span className="font-medium">{department?.name || employee.departmentName}</span>
+                                <span className="text-muted-foreground">Chi nhánh:</span>
+                                <span className="font-medium">{branch?.name || staff.branchName || 'Đang cập nhật'}</span>
                             </div>
                             <div className="flex justify-between py-2 border-b">
                                 <span className="text-muted-foreground">Ngày vào làm:</span>
-                                <span className="font-medium">{new Date(employee.hireDate).toLocaleDateString('vi-VN')}</span>
+                                <span className="font-medium">{new Date(staff.hireDate).toLocaleDateString('vi-VN')}</span>
                             </div>
                             <div className="flex justify-between py-2">
                                 <span className="text-muted-foreground">Trạng thái:</span>
-                                <Badge variant={employee.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                                    {employee.status === 'ACTIVE' ? 'Đang làm việc' : 'Đã nghỉ'}
+                                <Badge variant={staff.isActive ? 'default' : 'secondary'}>
+                                    {staff.isActive ? 'Đang hoạt động' : 'Tạm ngưng'}
                                 </Badge>
                             </div>
                         </div>
@@ -107,16 +107,15 @@ export default function ProfilePage() {
 
                 {/* Details Tabs */}
                 <Tabs defaultValue="general" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-1">
                         <TabsTrigger value="general">Thông tin chung</TabsTrigger>
-                        <TabsTrigger value="contract">Hợp đồng & Lương</TabsTrigger>
                     </TabsList>
 
                     <TabsContent value="general">
                         <Card>
                             <CardHeader>
-                                <CardTitle>Thông tin liên hệ</CardTitle>
-                                <CardDescription>Thông tin liên lạc và cá nhân của bạn</CardDescription>
+                                <CardTitle>Thông tin liên hệ & Chuyên môn</CardTitle>
+                                <CardDescription>Thông tin liên lạc và hồ sơ nghề nghiệp của bạn</CardDescription>
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 <div className="grid gap-2">
@@ -138,12 +137,13 @@ export default function ProfilePage() {
                                     />
                                 </div>
                                 <div className="grid gap-2">
-                                    <Label htmlFor="emergency">Liên hệ khẩn cấp</Label>
+                                    <Label htmlFor="specialization">Chuyên môn</Label>
                                     <Input
-                                        id="emergency"
-                                        value={formData.emergencyContact}
-                                        onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
+                                        id="specialization"
+                                        value={formData.specialization}
+                                        onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
                                         disabled={!isEditing}
+                                        placeholder="Ví dụ: Chỉnh nha, Cấy ghép Implant..."
                                     />
                                 </div>
                             </CardContent>
@@ -157,43 +157,6 @@ export default function ProfilePage() {
                                     <Button variant="outline" onClick={() => setIsEditing(true)}>Chỉnh sửa</Button>
                                 )}
                             </CardFooter>
-                        </Card>
-                    </TabsContent>
-
-                    <TabsContent value="contract">
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Thông tin hợp đồng</CardTitle>
-                                <CardDescription>Chi tiết hợp đồng lao động hiện tại</CardDescription>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-1">
-                                        <Label className="text-muted-foreground">Loại hợp đồng</Label>
-                                        <div className="font-medium">{employee.contractTypeName || 'Hợp đồng chính thức'}</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-muted-foreground">Ngày ký</Label>
-                                        <div className="font-medium">{contract ? new Date(contract.startDate).toLocaleDateString('vi-VN') : '---'}</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-muted-foreground">Lương cơ bản</Label>
-                                        <div className="font-medium">{contract ? contract.salary.toLocaleString() : '---'} VNĐ</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-muted-foreground">Số người phụ thuộc</Label>
-                                        <div className="font-medium">1</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-muted-foreground">Mã số thuế</Label>
-                                        <div className="font-medium">{employee.taxCode || '---'}</div>
-                                    </div>
-                                    <div className="space-y-1">
-                                        <Label className="text-muted-foreground">Số BHXH</Label>
-                                        <div className="font-medium">7482910384</div>
-                                    </div>
-                                </div>
-                            </CardContent>
                         </Card>
                     </TabsContent>
                 </Tabs>

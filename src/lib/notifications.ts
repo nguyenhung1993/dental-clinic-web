@@ -30,7 +30,7 @@ export async function notifyAdmins(title: string, message: string, type: Notific
         const admins = await prisma.user.findMany({
             where: {
                 role: {
-                    in: ['SUPER_ADMIN', 'HR_MANAGER', 'RECRUITER']
+                    in: ['SUPER_ADMIN', 'ADMIN']
                 }
             },
             select: { id: true }

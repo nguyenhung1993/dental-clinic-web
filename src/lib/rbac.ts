@@ -1,183 +1,80 @@
-// Role-Based Access Control (RBAC) Configuration
+// Role-Based Access Control (RBAC) Configuration cho Phòng khám Nha khoa
 
-// ========== ROLES ==========
+// ========== ROLES (Must match Prisma StaffRole exactly + VIEWER) ==========
 export type Role =
-    | 'SUPER_ADMIN'      // Toàn quyền
-    | 'HR_MANAGER'       // Quản lý nhân sự
-    | 'HR_STAFF'         // Nhân viên nhân sự
-    | 'RECRUITER'        // Tuyển dụng
-    | 'DEPARTMENT_HEAD'  // Trưởng phòng ban
-    | 'EMPLOYEE'         // Nhân viên thường
-    | 'VIEWER'           // Chỉ xem
-    | 'ASSET_MANAGER';   // Quản lý tài sản
+    | 'SUPER_ADMIN'
+    | 'ADMIN'
+    | 'DOCTOR'
+    | 'ASSISTANT'
+    | 'RECEPTIONIST'
+    | 'ACCOUNTANT'
+    | 'VIEWER';
 
 // ========== PERMISSIONS ==========
 export type Permission =
-    // Dashboard
     | 'dashboard:view'
-    // Recruitment
-    | 'jobs:view' | 'jobs:create' | 'jobs:edit' | 'jobs:delete'
-    | 'candidates:view' | 'candidates:create' | 'candidates:edit' | 'candidates:delete'
-    | 'interviews:view' | 'interviews:create' | 'interviews:edit' | 'interviews:feedback'
-    | 'offers:view' | 'offers:create' | 'offers:send' | 'offers:approve'
-    | 'onboarding:view' | 'onboarding:manage'
-    // HRM Core
-    | 'employees:view' | 'employees:create' | 'employees:edit' | 'employees:delete'
-    | 'departments:view' | 'departments:create' | 'departments:edit' | 'departments:delete'
-    | 'positions:view' | 'positions:create' | 'positions:edit' | 'positions:delete'
-    | 'contracts:view' | 'contracts:create' | 'contracts:edit'
-    // C&B (Compensation & Benefits)
-    | 'timesheet:view' | 'timesheet:manage'
-    | 'leave:view' | 'leave:create' | 'leave:approve'
-    | 'overtime:view' | 'overtime:create' | 'overtime:approve'
-    | 'insurance:view' | 'insurance:manage'
-    | 'payroll:view' | 'payroll:manage'
-    // Training
-    | 'courses:view' | 'courses:create' | 'courses:edit'
-    | 'classes:view' | 'classes:create' | 'classes:manage'
-    | 'materials:view' | 'materials:upload'
-    | 'history:view'
-    | 'exams:view' | 'exams:create' | 'exams:manage'
-    | 'elearning:view'
-    // Performance (KPI & Đánh giá)
-    | 'performance:view' | 'performance:manage' | 'performance:evaluate'
-    | 'goals:view' | 'goals:create' | 'goals:edit'
-    | 'evaluations:view' | 'evaluations:create' | 'evaluations:manage'
-    | 'results:view' | 'results:calibrate'
-    // Reports
-    | 'reports:view' | 'reports:export'
-    // Settings / Users
-    | 'settings:view' | 'settings:manage'
-    | 'users:view' | 'users:manage' | 'roles:manage'
-    // Assets
-    | 'assets:view' | 'assets:create' | 'assets:edit' | 'assets:delete' | 'assets:assign'
-
-    // Offboarding (Resignation)
-    | 'resignation:create' | 'resignation:approve' | 'resignation:view_all'
-
-    // Workplace
-    | 'workplace:view' | 'workplace:post'
-
-    // BPA (Approvals)
-    | 'bpa:request' | 'bpa:approve' | 'bpa:view_all';
+    | 'appointments:view' | 'appointments:manage'
+    | 'patients:view' | 'patients:manage'
+    | 'billing:view' | 'billing:manage'
+    | 'users:view' | 'users:manage'
+    | 'settings:view' | 'settings:manage';
 
 // ========== ROLE -> PERMISSIONS MAPPING ==========
 export const rolePermissions: Record<Role, Permission[]> = {
     SUPER_ADMIN: [
         'dashboard:view',
-        'jobs:view', 'jobs:create', 'jobs:edit', 'jobs:delete',
-        'candidates:view', 'candidates:create', 'candidates:edit', 'candidates:delete',
-        'interviews:view', 'interviews:create', 'interviews:edit', 'interviews:feedback',
-        'offers:view', 'offers:create', 'offers:send', 'offers:approve',
-        'onboarding:view', 'onboarding:manage',
-        'employees:view', 'employees:create', 'employees:edit', 'employees:delete',
-        'departments:view', 'departments:create', 'departments:edit', 'departments:delete',
-        'positions:view', 'positions:create', 'positions:edit', 'positions:delete',
-        'contracts:view', 'contracts:create', 'contracts:edit',
-        'timesheet:view', 'timesheet:manage',
-        'leave:view', 'leave:create', 'leave:approve',
-        'overtime:view', 'overtime:create', 'overtime:approve',
-        'insurance:view', 'insurance:manage',
-        'payroll:view', 'payroll:manage',
-        'courses:view', 'courses:create', 'courses:edit',
-        'classes:view', 'classes:create', 'classes:manage',
-        'materials:view', 'materials:upload',
-        'history:view',
-        'exams:view', 'exams:create', 'exams:manage',
-        'elearning:view',
-        'performance:view', 'performance:manage', 'performance:evaluate',
-        'goals:view', 'goals:create', 'goals:edit',
-        'evaluations:view', 'evaluations:create', 'evaluations:manage',
-        'results:view', 'results:calibrate',
-        'reports:view', 'reports:export',
+        'appointments:view', 'appointments:manage',
+        'patients:view', 'patients:manage',
+        'billing:view', 'billing:manage',
+        'users:view', 'users:manage',
         'settings:view', 'settings:manage',
-        'users:view', 'users:manage', 'roles:manage',
-        'assets:view', 'assets:create', 'assets:edit', 'assets:delete', 'assets:assign',
-        'resignation:view_all', 'resignation:approve', 'resignation:create',
-        'workplace:view', 'workplace:post',
-        'bpa:request', 'bpa:approve', 'bpa:view_all',
     ],
-    HR_MANAGER: [
+    ADMIN: [
         'dashboard:view',
-        'jobs:view', 'jobs:create', 'jobs:edit',
-        'candidates:view', 'candidates:create', 'candidates:edit',
-        'interviews:view', 'interviews:create', 'interviews:edit', 'interviews:feedback',
-        'offers:view', 'offers:create', 'offers:send', 'offers:approve',
-        'onboarding:view', 'onboarding:manage',
-        'employees:view', 'employees:create', 'employees:edit',
-        'departments:view', 'departments:edit',
-        'positions:view', 'positions:edit',
-        'contracts:view', 'contracts:create', 'contracts:edit',
-        'settings:view',
-        'assets:view', 'assets:create', 'assets:edit', 'assets:assign',
-        'resignation:view_all', 'resignation:approve', 'resignation:create',
-        'timesheet:view', 'timesheet:manage', 'leave:view', 'leave:approve', 'overtime:view', 'overtime:approve',
+        'appointments:view', 'appointments:manage',
+        'patients:view', 'patients:manage',
+        'billing:view', 'billing:manage',
+        'users:view', 'users:manage',
+        'settings:view', 'settings:manage',
     ],
-    HR_STAFF: [
+    DOCTOR: [
         'dashboard:view',
-        'resignation:view_all', 'resignation:approve', 'resignation:create',
-        'bpa:view_all', 'bpa:approve', 'bpa:request',
-        'jobs:view', 'jobs:create', 'jobs:edit',
-        'candidates:view', 'candidates:create', 'candidates:edit',
-        'interviews:view', 'interviews:create', 'interviews:feedback',
-        'offers:view', 'offers:create',
-        'onboarding:view', 'onboarding:manage',
-        'employees:view', 'employees:create',
-        'departments:view',
-        'positions:view',
-        'contracts:view',
-        'timesheet:view', 'leave:view', 'overtime:view',
+        'appointments:view', 'appointments:manage',
+        'patients:view', 'patients:manage',
+        'billing:view',
     ],
-    RECRUITER: [
+    ASSISTANT: [
         'dashboard:view',
-        'jobs:view', 'jobs:create', 'jobs:edit',
-        'candidates:view', 'candidates:create', 'candidates:edit',
-        'interviews:view', 'interviews:create', 'interviews:feedback',
-        'offers:view',
-        'onboarding:view',
+        'appointments:view',
+        'patients:view',
     ],
-    DEPARTMENT_HEAD: [
+    RECEPTIONIST: [
         'dashboard:view',
-        'resignation:approve', 'resignation:create',
-        'bpa:approve', 'bpa:request',
-        'jobs:view',
-        'candidates:view',
-        'interviews:view', 'interviews:feedback',
-        'employees:view',
-        'departments:view',
-        'positions:view',
-        'leave:approve', 'overtime:approve',
+        'appointments:view', 'appointments:manage',
+        'patients:view', 'patients:manage',
+        'billing:view',
+        'users:view',
     ],
-    EMPLOYEE: [
+    ACCOUNTANT: [
         'dashboard:view',
-        'resignation:create',
-        'workplace:view', 'workplace:post',
-        'bpa:request',
-        'timesheet:view', 'leave:create', 'overtime:create', 'payroll:view',
+        'appointments:view',
+        'patients:view',
+        'billing:view', 'billing:manage',
     ],
     VIEWER: [
         'dashboard:view',
-        'jobs:view',
-        'candidates:view',
-        'employees:view',
-        'departments:view',
-    ],
-    ASSET_MANAGER: [
-        'dashboard:view',
-        'assets:view', 'assets:create', 'assets:edit', 'assets:delete', 'assets:assign',
     ],
 };
 
 // ========== ROLE LABELS ==========
 export const roleLabels: Record<Role, { label: string; description: string; color: string }> = {
-    SUPER_ADMIN: { label: 'Super Admin', description: 'Toàn quyền hệ thống', color: 'bg-red-100 text-red-800' },
-    HR_MANAGER: { label: 'HR Manager', description: 'Quản lý toàn bộ nhân sự', color: 'bg-purple-100 text-purple-800' },
-    HR_STAFF: { label: 'HR Staff', description: 'Nhân viên nhân sự', color: 'bg-blue-100 text-blue-800' },
-    RECRUITER: { label: 'Recruiter', description: 'Chuyên viên tuyển dụng', color: 'bg-green-100 text-green-800' },
-    DEPARTMENT_HEAD: { label: 'Trưởng phòng', description: 'Quản lý phòng ban', color: 'bg-orange-100 text-orange-800' },
-    EMPLOYEE: { label: 'Nhân viên', description: 'Nhân viên bình thường', color: 'bg-gray-100 text-gray-800' },
-    VIEWER: { label: 'Viewer', description: 'Chỉ có quyền xem', color: 'bg-slate-100 text-slate-800' },
-    ASSET_MANAGER: { label: 'Asset Manager', description: 'Quản lý tài sản', color: 'bg-cyan-100 text-cyan-800' },
+    SUPER_ADMIN: { label: 'Quản trị viên cấp cao', description: 'Toàn quyền hệ thống', color: 'bg-red-100 text-red-800' },
+    ADMIN: { label: 'Quản trị viên', description: 'Quản lý phòng khám', color: 'bg-purple-100 text-purple-800' },
+    DOCTOR: { label: 'Bác sĩ', description: 'Bác sĩ điều trị', color: 'bg-blue-100 text-blue-800' },
+    ASSISTANT: { label: 'Phụ tá', description: 'Bác sĩ phụ tá', color: 'bg-green-100 text-green-800' },
+    RECEPTIONIST: { label: 'Lễ tân', description: 'Tiếp đón viên', color: 'bg-orange-100 text-orange-800' },
+    ACCOUNTANT: { label: 'Kế toán', description: 'Kế toán trưởng', color: 'bg-gray-100 text-gray-800' },
+    VIEWER: { label: 'Viewer', description: 'Chỉ xem', color: 'bg-slate-100 text-slate-800' },
 };
 
 // ========== HELPER FUNCTIONS ==========
@@ -214,12 +111,11 @@ export const navigationConfig: NavGroup[] = [
         items: [
             { href: '/admin', label: 'Dashboard', icon: 'LayoutDashboard', permission: 'dashboard:view' },
             { href: '/admin/audit-logs', label: 'Hoạt động', icon: 'Shield', permission: 'dashboard:view' },
+            { href: '/admin/users', label: 'Tài khoản', icon: 'Users', permission: 'dashboard:view' },
         ],
     },
 ];
 
-
-// Get filtered navigation based on role
 export const getNavigationForRole = (role: Role): NavGroup[] => {
     return navigationConfig
         .map(group => ({

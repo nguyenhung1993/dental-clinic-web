@@ -7,7 +7,7 @@ export default async function ExpensesPage() {
     getFinancialSummary()
   ]);
 
-  const expenses = expensesRes.success ? expensesRes.data : [];
+  const expenses = expensesRes.success ? (expensesRes.data ?? []) : [];
   const summary = (summaryRes.success && summaryRes.data) ? summaryRes.data : {
     totalRevenue: 0,
     totalExpenses: 0,

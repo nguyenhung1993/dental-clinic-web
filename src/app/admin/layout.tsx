@@ -101,7 +101,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // Get user role with fallback
-    const userRole: Role = (session?.user?.role as Role) || 'EMPLOYEE';
+    const userRole: Role = (session?.user?.role as Role) || 'RECEPTIONIST';
     const roleInfo = roleLabels[userRole];
 
     // Get navigation based on user role
