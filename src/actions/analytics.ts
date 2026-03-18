@@ -64,21 +64,24 @@ export async function getAnalyticsStats() {
           select: { id: true }
         },
         commissions: {
-          _sum: { amount: true }
+          select: { amount: true }
         }
       }
     });
 
     // Tính toán doanh thu theo bác sĩ từ Invoices (thông qua Appointment -> TreatmentPlan -> Invoice)
     // Để đơn giản hơn trong MVP, ta có thể query trực tiếp các dịch vụ bác sĩ thực hiện
-    // Ở đây tôi sẽ tính toán giả lập dựa trên Commissions để lấy con số tương đối
-    const doctorStats = doctors.map((dr: any) => ({
-      name: dr.fullName,
-      treatments: dr.appointments.length,
-      revenue: (dr.commissions._sum.amount || 0) * 5, // Giả sử hoa hồng 20%
-      commission: dr.commissions._sum.amount || 0,
-      rating: 4.8 + Math.random() * 0.2 // Tạm thời dùng random cho rating
-    }));
+    // Ở đây tôi sẽ tính toán dựa trên Commissions để lấy con số thực tế
+    const doctorStats = doctors.map((dr: any) => {
+      const totalCommission = dr.commissions.reduce((sum: number, c: any) => sum + (c.amount || 0), 0);
+      return {
+        name: dr.fullName,
+        treatments: dr.appointments.length,
+        revenue: totalCommission * 5, // Giả sử hoa hồng 20%
+        commission: totalCommission,
+        rating: 4.8 + Math.random() * 0.2 // Tạm thời dùng random cho rating
+      };
+    });
 
     return {
       stats: {
