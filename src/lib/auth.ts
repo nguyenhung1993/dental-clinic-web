@@ -58,6 +58,7 @@ export const getUserRole = async (email: string | null | undefined): Promise<Rol
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
+    trustHost: true,
     adapter: PrismaAdapter(prisma),
     secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     session: { strategy: "jwt" },
