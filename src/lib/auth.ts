@@ -59,6 +59,7 @@ export const getUserRole = async (email: string | null | undefined): Promise<Rol
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
     adapter: PrismaAdapter(prisma),
+    secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
     session: { strategy: "jwt" },
     providers: [
         Google({
@@ -94,7 +95,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                         image: user.image,
                         role: user.role, // Pass role to token
                     };
-                } catch {
+                } catch (dbError) {
+                    console.error("Database error during authorize:", dbError);
                     // DB not available, fall back to mock for development
                     const mockUsers = [
                         { id: "usr_admin", name: "Admin User", email: "admin@phoenix.com", password: "123", image: "https://avatar.vercel.sh/admin", role: "ADMIN" },
