@@ -4,7 +4,7 @@ import { auth } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-// GET /api/departments - List departments (supports tree structure)
+// GET /api/departments - Trả về danh sách chi nhánh (để tương thích với UI cũ)
 export async function GET(request: NextRequest) {
     try {
         const session = await auth();
@@ -12,66 +12,30 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ error: 'Không có quyền truy cập' }, { status: 401 });
         }
 
-        const searchParams = request.nextUrl.searchParams;
-        const tree = searchParams.get('tree') === 'true';
-
-        const departments = await prisma.branch.findMany({
+        const branches = await prisma.branch.findMany({
             include: {
-                _count: { select: { employees: true } },
-                employees: {
-                    where: { id: { not: undefined } },
-                    select: { id: true, fullName: true },
-                    take: 0, // We don't need employees list here
-                },
+                _count: { select: { staff: true } },
             },
             orderBy: { name: 'asc' },
         });
 
-        // Enrich with manager name
-        const managerIds = departments.map(d => d.managerId).filter(Boolean) as string[];
-        const managers = managerIds.length > 0
-            ? await prisma.staff.findMany({
-                where: { id: { in: managerIds } },
-                select: { id: true, fullName: true },
-            })
-            : [];
-        const managerMap = new Map(managers.map(m => [m.id, m.fullName]));
-
-        const enriched = departments.map(d => ({
-            ...d,
-            employeeCount: d._count.employees,
-            managerName: d.managerId ? managerMap.get(d.managerId) || null : null,
+        const data = branches.map(b => ({
+            id: b.id,
+            name: b.name,
+            code: b.id.substring(0, 8).toUpperCase(), // Giả lập code
+            employeeCount: b._count.staff,
+            isActive: b.isActive,
+            managerName: 'Admin', // Dummy data for now
         }));
 
-        if (tree) {
-            // Build tree structure
-            type DeptItem = typeof enriched[number];
-            type DeptNode = DeptItem & { children: DeptItem[] };
-            const deptMap = new Map<string, DeptNode>(
-                enriched.map((d: DeptItem) => [d.id, { ...d, children: [] }])
-            );
-            const roots: DeptNode[] = [];
-
-            enriched.forEach((dept: DeptItem) => {
-                const node = deptMap.get(dept.id)!;
-                if (dept.parentId && deptMap.has(dept.parentId)) {
-                    deptMap.get(dept.parentId)!.children.push(node);
-                } else {
-                    roots.push(node);
-                }
-            });
-
-            return NextResponse.json({ data: roots });
-        }
-
-        return NextResponse.json({ data: enriched });
+        return NextResponse.json({ data });
     } catch (error) {
         console.error('GET /api/departments error:', error);
         return NextResponse.json({ error: 'Lỗi hệ thống' }, { status: 500 });
     }
 }
 
-// POST /api/departments - Create new department
+// POST /api/departments - Tạo chi nhánh mới
 export async function POST(request: NextRequest) {
     try {
         const session = await auth();
@@ -80,20 +44,20 @@ export async function POST(request: NextRequest) {
         }
 
         const body = await request.json();
-        const { code, name, parentId, managerId } = body;
+        const { name } = body;
 
-        if (!code || !name) {
+        if (!name) {
             return NextResponse.json(
-                { error: 'Thiếu thông tin bắt buộc: code, name' },
+                { error: 'Thiếu thông tin bắt buộc: name' },
                 { status: 400 }
             );
         }
 
-        const department = await prisma.branch.create({
-            data: { code, name, parentId, managerId },
+        const branch = await prisma.branch.create({
+            data: { name, address: '', phone: '' },
         });
 
-        return NextResponse.json(department, { status: 201 });
+        return NextResponse.json(branch, { status: 201 });
     } catch (error) {
         console.error('POST /api/departments error:', error);
         return NextResponse.json({ error: 'Lỗi hệ thống' }, { status: 500 });
