@@ -1,13 +1,26 @@
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
     prisma: PrismaClient | undefined;
 };
 
-// Simple Prisma client for Vercel Serverless (avoiding complexity of pg-adapter unless needed for Edge)
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
-});
+function createPrismaClient(): PrismaClient {
+    const connectionString = process.env.DATABASE_URL;
+    
+    if (!connectionString) {
+        console.warn('⚠️ DATABASE_URL not set. Using fallback Prisma client.');
+        return new PrismaClient();
+    }
+
+    // Using pg adapter to avoid engine issues in Serverless/Standalone environments
+    const pool = new Pool({ connectionString });
+    const adapter = new PrismaPg(pool);
+    return new PrismaClient({ adapter });
+}
+
+export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 
