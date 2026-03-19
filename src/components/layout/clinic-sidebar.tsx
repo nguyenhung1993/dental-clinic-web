@@ -57,7 +57,6 @@ const menuGroups = [
       { name: 'Đơn thuốc', href: '/prescriptions', icon: Pill },
       { name: 'Xét nghiệm', href: '/labs', icon: FlaskConical },
       { name: 'Tiêm chủng', href: '/vaccinations', icon: Syringe },
-      { name: 'Bảo mật & Audit', href: '/admin/audit-logs', icon: ShieldCheck },
     ]
   },
   {
