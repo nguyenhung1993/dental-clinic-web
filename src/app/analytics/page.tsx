@@ -48,8 +48,18 @@ export default function AnalyticsPage() {
         getAnalyticsStats(),
         getServicesBreakdown()
       ]);
-      if (statsRes) setData(statsRes);
-      setServices(servicesRes);
+      
+      if (statsRes) {
+        setData(statsRes);
+      } else {
+        setData({
+          stats: { totalRevenue: 0, newPatients: 0, returnRate: "0%", netProfit: 0 },
+          chartData: [],
+          doctorPerformance: []
+        });
+      }
+      
+      setServices(servicesRes || []);
       setLoading(false);
     }
     loadData();
